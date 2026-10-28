@@ -8,6 +8,7 @@
   <img src="https://img.shields.io/badge/python-3.10%2B-3776AB?logo=python&logoColor=white" alt="Python 3.10+" />
   <img src="https://img.shields.io/badge/Flask-3.x-000000?logo=flask&logoColor=white" alt="Flask" />
   <img src="https://img.shields.io/badge/rating-0--10%20continuous-orange" alt="0-10 continuous rating" />
+  <a href="https://material-perception-demo-production.up.railway.app"><img src="https://img.shields.io/badge/live%20demo-open-2ea44f" alt="Live demo" /></a>
 </p>
 
 ---
@@ -24,7 +25,7 @@ This repository contains the web application used to collect perceptual material
 
 The full scene is always visible for context. Pressing and holding the image switches to a focus view in which the target material stays sharp while the rest of the scene is blurred and dimmed, so observers know which region to rate without losing the surrounding context.
 
-**Live demo:** _add the demo URL here_
+**Live demo:** <https://material-perception-demo-production.up.railway.app>
 
 The repository runs in **demo mode** by default: the complete interface (instructions, demographics form, tutorial, adaptation, rating trials, and completion screen) on 10 sample images. The demo does not store anything; ratings and form answers are discarded when you finish.
 
