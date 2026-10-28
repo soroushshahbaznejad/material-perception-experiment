@@ -1,0 +1,1821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Material Perception Experiment</title>
+<style>
+/* ── Reset & Global ─────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; width: 100%; overflow-x: hidden; }
+:root { --footer-space: 34px; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+  background: #1a1c1e; color: #E8EAED; line-height: 1.5;
+}
+a { color: #8AB4F8; }
+
+/* ── Page containers ────────────────────────────────── */
+.page { display: none; }
+.page.active { display: flex; }
+
+/* ── Card panel (center column pages) ───────────────── */
+.card-panel {
+  max-width: 700px; margin: 20px auto; padding: 32px 40px 40px;
+  border-radius: 14px; background: #2D2F31; border: 1px solid #444;
+  flex-direction: column; align-items: stretch;
+}
+.card-panel h1 { font-size: 2.2rem; margin-bottom: 16px; font-weight: 700; }
+.card-panel h2 { font-size: 1.8rem; margin-bottom: 12px; font-weight: 700; }
+.card-panel p {
+  font-size: 1.15rem; color: #E8EAED; line-height: 1.75; margin-bottom: 12px; }
+
+/* ── Buttons ────────────────────────────────────────── */
+.btn-primary {
+  display: block; width: 100%; padding: 14px; border: none; border-radius: 8px;
+  background: #8AB4F8; color: #000; font-size: 1.1rem; font-weight: 700;
+  cursor: pointer; transition: background .2s;
+}
+.btn-primary:hover { background: #aecbfa; }
+.btn-primary:disabled { opacity: .5; cursor: not-allowed; }
+
+.btn-secondary {
+  padding: 12px 20px; border: 1px solid #5F6368; border-radius: 8px;
+  background: #3C4043; color: #E8EAED; font-size: 1rem; font-weight: 700;
+  cursor: pointer; transition: background .2s; flex: 1;
+}
+.btn-secondary:hover { background: #4a4d50; }
+.btn-secondary:disabled { opacity: .4; cursor: not-allowed; }
+
+/* ── Viewing conditions box ─────────────────────────── */
+.view-cond {
+  border: 1px solid rgba(138,180,248,.25); border-radius: 10px;
+  background: rgba(138,180,248,.08); padding: 16px 20px;
+  font-size: 1.1rem; color: #E8EAED; line-height: 1.8; margin: 12px 0 16px;
+}
+.view-cond b, .view-cond strong { color: #8AB4F8; }
+
+/* ── Form elements ──────────────────────────────────── */
+.form-group { margin-bottom: 14px; }
+.form-group label { display: block; font-size: 1.05rem; font-weight: 600; margin-bottom: 5px; color: #E8EAED; }
+.form-group .sublabel { font-size: .9rem; color: #9AA0A6; margin-bottom: 5px; }
+
+.radio-group { display: flex; flex-wrap: wrap; gap: 6px; }
+.radio-group label {
+  display: flex; align-items: center; gap: 5px; padding: 7px 12px;
+  border: 1px solid #5F6368; border-radius: 8px; cursor: pointer;
+  font-size: .95rem; font-weight: 400; transition: all .2s;
+}
+.radio-group label:hover { border-color: #8AB4F8; }
+.radio-group input[type="radio"] { accent-color: #8AB4F8; }
+.radio-group input[type="radio"]:checked + span { color: #8AB4F8; }
+.radio-group label:has(input:checked) { border-color: #8AB4F8; background: rgba(138,180,248,.1); }
+
+input[type="number"] {
+  width: 120px; padding: 8px 12px; border: 1px solid #5F6368; border-radius: 8px;
+  background: #1a1c1e; color: #E8EAED; font-size: 1rem;
+}
+input[type="number"]:focus { outline: none; border-color: #8AB4F8; }
+textarea {
+  width: 100%; min-height: 100px; padding: 10px 12px; border: 1px solid #5F6368;
+  border-radius: 8px; background: #1a1c1e; color: #E8EAED; font-size: 1rem;
+  line-height: 1.5; resize: vertical;
+}
+textarea:focus { outline: none; border-color: #8AB4F8; }
+
+select {
+  padding: 8px 12px; border: 1px solid #5F6368; border-radius: 8px;
+  background: #1a1c1e; color: #E8EAED; font-size: .95rem; width: 100%;
+}
+select:focus { outline: none; border-color: #8AB4F8; }
+
+.checkbox-label {
+  display: flex; align-items: center; gap: 8px; cursor: pointer;
+  font-size: 1.05rem; padding: 6px 0;
+}
+.checkbox-label input[type="checkbox"] { accent-color: #8AB4F8; width: 18px; height: 18px; }
+
+.form-row { display: flex; gap: 16px; align-items: flex-start; }
+.form-row .form-group { min-width: 0; }
+.form-row .form-group:first-child { flex: 0 0 auto; }
+.form-row .form-group:last-child { flex: 1; }
+@media (max-width: 480px) { .form-row { flex-direction: column; } }
+
+hr { border: none; border-top: 1px solid #444; margin: 10px 0; }
+
+.err-msg { color: #f28b82; font-weight: 600; font-size: .95rem; margin-top: 8px; min-height: 20px; }
+
+/* ── Tutorial ───────────────────────────────────────── */
+.example-gif-box {
+  border: 2px solid rgba(138,180,248,.25); border-radius: 12px;
+  background: rgba(138,180,248,.03); padding: 0; text-align: center;
+  min-height: 320px; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; margin: 16px 0; overflow: hidden;
+}
+#page-tutorial h1{font-size:clamp(2rem,3vw,2.75rem);margin-bottom:14px}
+#page-tutorial>p{font-size:clamp(1.08rem,1.45vw,1.28rem);line-height:1.7;max-width:760px;margin-left:auto;margin-right:auto}
+.tut-wrap{width:100%;padding:16px 0}
+.tut-interface{display:flex;border-radius:10px;overflow:hidden;border:1px solid #444;
+  height:320px;max-width:780px;margin:0 auto;background:#1a1c1e}
+.tut-img-col{flex:6;background:#1a1c1e;display:flex;align-items:center;justify-content:center}
+.tut-img-area{width:100%;height:100%;display:flex;align-items:center;justify-content:center;
+  transition:opacity .6s;position:relative;padding:12px}
+.tut-img-stage{position:relative;width:100%;height:100%;display:flex;align-items:center;justify-content:center}
+.tut-stimulus-stack{position:relative;width:100%;height:100%;cursor:pointer;touch-action:none}
+.tut-stimulus-layer{position:absolute;inset:0;margin:auto;max-width:92%;max-height:92%;object-fit:contain;
+  border-radius:4px;box-shadow:0 10px 24px rgba(0,0,0,.28);user-select:none;-webkit-user-select:none;
+  pointer-events:none}
+.tut-stimulus-layer-focus{opacity:0;transition:opacity .12s ease}
+.tut-stimulus-stack.is-focused .tut-stimulus-layer-focus{opacity:1}
+.tut-hold-flash{position:absolute;inset:7%;border-radius:10px;pointer-events:none;opacity:0;
+  background:radial-gradient(circle at center,rgba(138,180,248,.34),rgba(138,180,248,.12) 38%,rgba(138,180,248,0) 68%);
+  box-shadow:0 0 0 2px rgba(138,180,248,.55),0 0 34px rgba(138,180,248,.45),inset 0 0 28px rgba(138,180,248,.18);
+  transform:scale(.96)}
+.tut-stimulus-stack.attention-flash .tut-hold-flash{animation:tutHoldFlash 1.18s ease-in-out 2}
+@keyframes tutHoldFlash{
+  0%{opacity:0;transform:scale(.95)}
+  18%{opacity:1;transform:scale(1)}
+  58%{opacity:.42;transform:scale(1.025)}
+  100%{opacity:0;transform:scale(1.06)}
+}
+.tut-outline-hint{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);
+  padding:6px 12px;border-radius:999px;border:1px solid rgba(138,180,248,.25);
+  background:rgba(26,28,30,.72);color:rgba(255,255,255,.6);font-size:13px;letter-spacing:.25px;
+  max-width:calc(100% - 20px);text-align:center;line-height:1.35;transition:all .2s;pointer-events:none}
+.tut-outline-hint.active{color:#E8EAED;border-color:rgba(138,180,248,.55);
+  background:rgba(138,180,248,.16);box-shadow:0 0 16px rgba(138,180,248,.25)}
+.tut-ctrl-col{flex:4;background:#2D2F31;border-left:1px solid #444;padding:12px 14px;
+  display:flex;flex-direction:column;justify-content:center;gap:6px}
+.tut-prompt{color:#E8EAED;font-size:18px;font-weight:700}
+.tut-hint{color:#8AB4F8;font-size:12px;text-align:center;opacity:.78;margin-bottom:2px;line-height:1.35}
+.tut-attr-box{border:1px solid rgba(138,180,248,.25);border-radius:8px;
+  padding:6px 10px 4px;background:rgba(138,180,248,.04)}
+.tut-attr-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.tut-attr-title{color:#8AB4F8;font-weight:700;font-size:14px;
+  text-decoration:underline dotted rgba(138,180,248,.6);text-underline-offset:2px}
+.tut-lbl{color:#9AA0A6;font-size:12px}
+.tut-slider-row{display:flex;align-items:center;gap:6px}
+.tut-num{color:#777;font-size:12px;min-width:16px;text-align:center}
+.tut-track{flex:1;height:6px;background:#444;border-radius:3px;position:relative}
+.tut-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,#2f6eb5,#8AB4F8);
+  position:absolute;left:0;top:0;width:50%;transition:width 1.2s ease-in-out}
+.tut-thumb{width:14px;height:14px;border-radius:50%;background:#8AB4F8;
+  border:2px solid #fff;position:absolute;top:50%;transform:translate(-50%,-50%);
+  left:50%;box-shadow:0 1px 4px rgba(0,0,0,.4);transition:left 1.2s ease-in-out}
+.tut-nav{display:flex;gap:8px;margin-top:4px}
+.tut-btn-prev{flex:1;text-align:center;padding:6px 0;border-radius:6px;
+  background:#3a3a3a;color:#888;font-size:14px;font-weight:600}
+.tut-btn-next{flex:1;text-align:center;padding:6px 0;border-radius:6px;
+  background:#4a4a4a;color:#E8EAED;font-size:14px;font-weight:700;transition:all .3s}
+.tut-btn-next.pulse{background:#8AB4F8;color:#1a1c1e;box-shadow:0 0 14px rgba(138,180,248,.6)}
+.tut-caption{text-align:center;margin:14px auto 0;padding:10px 20px;border-radius:8px;
+  background:rgba(138,180,248,.1);border:1px solid rgba(138,180,248,.3);
+  color:#E8EAED;font-size:17px;font-weight:500;max-width:760px;line-height:1.55;
+  min-height:54px;transition:opacity .4s}
+
+/* ── Adaptation ─────────────────────────────────────── */
+#page-adaptation {
+  position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+  background: #5a5a5a; z-index: 9999;
+  flex-direction: column; align-items: center; justify-content: center;
+}
+.adapt-circle { position: relative; width: 200px; height: 200px;
+  display: flex; align-items: center; justify-content: center; }
+.adapt-cross { font-size: 60px; color: #E8EAED; font-weight: 200; user-select: none; }
+#adaptSeconds { font-size: 48px; color: #E8EAED; font-weight: 700;
+  font-variant-numeric: tabular-nums; margin-top: 28px; }
+.adapt-label { margin-top: 14px; font-size: 15px; color: #bbb;
+  letter-spacing: 2px; text-transform: uppercase; }
+.adapt-sublabel { margin-top: 10px; font-size: 13px; color: #9AA0A6;
+  text-align: center; line-height: 1.6; max-width: 400px; }
+
+/* ── Experiment (Trial) layout ──────────────────────── */
+#page-experiment {
+  position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+  height: 100dvh; z-index: 50; flex-direction: row;
+}
+.image-col {
+  flex: 7; background: #1a1c1e; display: flex; align-items: center;
+  justify-content: center; overflow: hidden; min-height: 0;
+  position: relative;
+}
+.stimulus-stack {
+  position: relative; width: 100%; height: 100%; cursor: pointer; touch-action: none;
+}
+.stimulus-layer {
+  position: absolute; inset: 0; margin: auto; border-radius: 4px; object-fit: contain;
+  max-height: calc(100vh - 8px); max-height: calc(100dvh - 8px);
+  max-width: 100%; width: auto; user-select: none; -webkit-user-select: none;
+  pointer-events: none; opacity: 0; transition: opacity .25s ease;
+}
+.stimulus-layer.loaded { opacity: 1; }
+.stimulus-layer-focus { opacity: 0; transition: opacity .12s ease; }
+.stimulus-layer-focus.loaded { opacity: 0; }
+.stimulus-stack.is-focused .stimulus-layer-focus.loaded { opacity: 1; }
+
+/* Loading spinner overlay */
+.stimulus-spinner {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  pointer-events: none; z-index: 2; transition: opacity .25s ease;
+}
+.stimulus-spinner.hidden { opacity: 0; }
+.stimulus-spinner::after {
+  content: ''; width: 36px; height: 36px; border: 3px solid rgba(138,180,248,.2);
+  border-top-color: #8AB4F8; border-radius: 50%;
+  animation: spin .7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.outline-hint {
+  position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+  font-size: 11px; color: rgba(255,255,255,.5); letter-spacing: .3px;
+  pointer-events: none; white-space: nowrap; transition: all .2s ease;
+}
+.outline-hint.active { color:#E8EAED; text-shadow:0 0 10px rgba(138,180,248,.4); }
+.ctrl-col {
+  flex: 3; background: #2D2F31; border-left: 1px solid #444;
+  padding: 1.2vh 16px 1vh; height: 100vh; height: 100dvh;
+  overflow: visible; box-sizing: border-box;
+  display: flex; flex-direction: column; justify-content: center; gap: 4px;
+  padding-bottom: 30px;
+}
+
+/* ── Progress bar ───────────────────────────────────── */
+.prog-shell { margin: 0.5vh 0; }
+.prog-copy { display: flex; justify-content: space-between;
+  font-size: clamp(13px,.95vw,16px); color: #ccc; margin-bottom: 3px; font-weight: 500; }
+.prog-track { height: 8px; border-radius: 4px; background: #444; overflow: hidden;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.3); }
+.prog-fill { height: 100%; border-radius: 4px;
+  background: linear-gradient(90deg,#2f6eb5,#8AB4F8);
+  box-shadow: 0 0 8px rgba(138,180,248,0.4); transition: width 0.3s ease; }
+
+/* ── Banners ────────────────────────────────────────── */
+.banner { border: 1px solid rgba(138,180,248,.2); border-radius: 5px;
+  background: rgba(138,180,248,.08); padding: 4px 10px;
+  color: #E8EAED; margin-bottom: 0.4vh; font-size: clamp(9px,.65vw,12px); }
+.banner.notice { border-color: rgba(240,195,109,.3); background: rgba(240,195,109,.1); }
+
+/* ── Class prompt ───────────────────────────────────── */
+.class-prompt { font-size: clamp(16px, 1.3vw, 20px); margin: 0.5vh 0; color: #E8EAED; }
+.stimulus-meta {
+  font-size: clamp(11px, .85vw, 13px);
+  color: #9AA0A6;
+  margin: -0.2vh 0 0.5vh;
+  line-height: 1.35;
+  display: none;
+}
+
+/* ── Hover hint ─────────────────────────────────────── */
+.hover-hint {
+  text-align: center; font-size: clamp(13px, .9vw, 15px);
+  color: #8AB4F8; margin: 0.6vh 0 0.4vh; letter-spacing: 0.5px; opacity: 0.85;
+}
+
+/* ── Attribute section ──────────────────────────────── */
+.attr-section {
+  border: 1px solid rgba(138,180,248,.25); border-radius: 10px;
+  padding: 8px 12px 6px; margin: 6px 0;
+  background: rgba(138,180,248,.04); overflow: visible;
+}
+
+/* ── Sphere headers with tooltip ────────────────────── */
+.sphere-hdr { display: flex; align-items: center; justify-content: space-between;
+  margin: 0.4vh 0 0; padding: 0 2px; position: relative; overflow: visible; }
+.sphere-hdr svg { width: 36px; height: 36px; flex-shrink: 0; }
+.sphere-hdr span { font-size: clamp(12px, .9vw, 14px); color: #9AA0A6; }
+.sphere-hdr .side { display: flex; align-items: center; gap: 6px; }
+
+.sphere-title {
+  font-size: clamp(13px, 1vw, 16px); font-weight: 700; color: #8AB4F8;
+  cursor: help; position: relative;
+  text-decoration: underline dotted rgba(138,180,248,.8);
+  text-underline-offset: 3px; text-decoration-thickness: 2px;
+  text-shadow: 0 0 8px rgba(138,180,248,.4);
+  transition: color .2s, text-shadow .2s;
+}
+.sphere-title:hover { color: #aecbfa; text-shadow: 0 0 12px rgba(138,180,248,.7); }
+.sphere-title .tooltip {
+  display: none; position: fixed; width: 260px; padding: 10px 14px;
+  background: #1a1c1e; border: 1px solid #555; border-radius: 8px;
+  color: #ccc; font-size: 12px; font-weight: 400; line-height: 1.5;
+  z-index: 99999; pointer-events: none; box-shadow: 0 4px 20px rgba(0,0,0,.5);
+  text-align: center; text-decoration: none;
+}
+
+/* ── Slider styling ─────────────────────────────────── */
+.slider-row { display: flex; align-items: center; gap: 8px; margin: 4px 0; }
+.slider-row .num { color: #666; font-size: clamp(11px,.8vw,13px); min-width: 18px; text-align: center; }
+.slider-row input[type="range"] {
+  flex: 1; -webkit-appearance: none; appearance: none; height: 6px;
+  background: #444; border-radius: 3px; outline: none;
+}
+.slider-row input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%;
+  background: #8AB4F8; border: 2px solid #fff; cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0,0,0,.4);
+}
+.slider-row input[type="range"]::-moz-range-thumb {
+  width: 18px; height: 18px; border-radius: 50%;
+  background: #8AB4F8; border: 2px solid #fff; cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0,0,0,.4);
+}
+.slider-val {
+  color: #8AB4F8; font-weight: 600; font-size: clamp(12px,.9vw,15px);
+  min-width: 22px; text-align: center;
+}
+
+/* ── Nav buttons ────────────────────────────────────── */
+.nav-row { display: flex; gap: 8px; margin-top: 1vh; }
+.nav-row button {
+  flex: 1; height: clamp(38px, 5vh, 50px);
+  font-size: clamp(14px, 1.1vw, 18px); font-weight: 700; border-radius: 8px;
+}
+
+/* ── Copyright footer ──────────────────────────────── */
+.copyright-footer {
+  position: fixed; bottom: 0; left: 0; width: 100%; text-align: center;
+  padding: 5px 12px; font-size: 10px; color: #6b7280;
+  background: rgba(26,28,30,.9); backdrop-filter: blur(4px);
+  z-index: 900; letter-spacing: .3px;
+}
+.copyright-footer a { color: #8AB4F8; text-decoration: none; }
+.copyright-footer a:hover { text-decoration: underline; }
+body.pseudo-fullscreen .copyright-footer { display: none !important; }
+
+/* ── Fullscreen button ──────────────────────────────── */
+.fs-btn {
+  position: fixed; top: calc(6px + env(safe-area-inset-top)); right: calc(6px + env(safe-area-inset-right)); z-index: 100;
+  background: rgba(60,64,67,.85); border: 1px solid #666;
+  color: #E8EAED; padding: 5px 12px; border-radius: 5px;
+  font-size: 11px; cursor: pointer;
+}
+.fs-btn:hover { background: rgba(80,84,87,.9); }
+
+/* ── Completion ─────────────────────────────────────── */
+.demo-note {
+  border: 1px solid rgba(138,180,248,.35); border-radius: 10px;
+  background: rgba(138,180,248,.1); padding: 12px 16px; margin: 4px 0 16px;
+}
+#page-completion {
+  min-height: 100vh; flex-direction: column; align-items: center;
+  justify-content: center; text-align: center; padding: 40px 20px;
+}
+.completion-check { font-size: 64px; margin-bottom: 16px; color: #8AB4F8; }
+.completion-box {
+  background: #2D2F31; border-radius: 12px; padding: 24px 40px;
+  display: inline-block; text-align: left; border: 1px solid #444; margin-top: 24px;
+}
+.completion-box .label { color: #9AA0A6; font-size: 13px; margin-bottom: 4px; }
+.completion-box .value { color: #E8EAED; font-size: 18px; font-weight: 600; margin-bottom: 16px; }
+.completion-box .value.accent { color: #8AB4F8; }
+
+/* ── Final comment modal ───────────────────────────── */
+.comment-modal {
+  position: fixed; inset: 0; z-index: 1000; display: none; align-items: center; justify-content: center;
+  background: rgba(0,0,0,.62); padding: 20px;
+}
+.comment-card {
+  width: min(520px, 100%); border-radius: 14px; border: 1px solid #555;
+  background: #2D2F31; box-shadow: 0 20px 70px rgba(0,0,0,.55); padding: 24px;
+}
+.comment-card h2 { margin-bottom: 8px; font-size: 1.35rem; }
+.comment-card p { color: #C9CDD2; font-size: .98rem; margin-bottom: 14px; }
+.comment-count { color: #9AA0A6; text-align: right; font-size: 12px; margin-top: 5px; }
+.comment-actions { display: flex; gap: 10px; margin-top: 16px; }
+.comment-actions .btn-primary, .comment-actions .btn-secondary { flex: 1; width: auto; }
+
+/* ── Responsive ─────────────────────────────────────── */
+/* ── Tablet (768px - 1024px) ─────────────────────── */
+@media (max-width: 1024px) {
+  .card-panel { max-width: 90%; padding: 28px 32px; }
+  .card-panel h1 { font-size: 2rem; }
+  .card-panel p { font-size: 1.1rem; }
+  .tut-interface { height: 260px; max-width: 95%; }
+  .ctrl-col { flex: 4; padding: 10px 12px; }
+}
+
+/* ── Mobile + short screens (≤768px or short) ────── */
+@media (max-width: 768px), (max-height: 580px) {
+  body { padding-bottom: calc(var(--footer-space) + env(safe-area-inset-bottom)); }
+  .card-panel { margin-bottom: calc(18px + var(--footer-space) + env(safe-area-inset-bottom)); }
+  #page-completion { padding-bottom: calc(48px + var(--footer-space) + env(safe-area-inset-bottom)); }
+  .copyright-footer { padding-bottom: calc(6px + env(safe-area-inset-bottom)); }
+  #page-experiment { flex-direction: column; }
+  .image-col { max-height: 35vh; max-height: 35dvh; flex: 0 0 auto; min-height: 25vh; }
+  .ctrl-col { flex: 1; height: auto; border-left: none; border-top: 1px solid #444;
+    padding: 10px 14px calc(18px + env(safe-area-inset-bottom)); overflow-y: auto; justify-content: flex-start; }
+  .stimulus-layer { max-height: calc(35vh - 4px); max-height: calc(35dvh - 4px); }
+  .sphere-hdr svg { width: 28px; height: 28px; }
+  .sphere-hdr .side { gap: 4px; }
+  .attr-section { padding: 6px 10px 4px; margin: 4px 0; }
+  .card-panel { max-width: 95%; margin: 10px auto calc(18px + var(--footer-space) + env(safe-area-inset-bottom)); padding: 20px 18px; }
+  .card-panel h1 { font-size: 1.7rem; }
+  .card-panel h2 { font-size: 1.4rem; }
+  .card-panel p { font-size: 1rem; line-height: 1.6; }
+  .btn-primary { padding: 12px; font-size: 1rem; }
+  .sphere-hdr svg { width: 30px; height: 30px; }
+  .sphere-hdr span { font-size: 10px; }
+  .sphere-title { font-size: 12px; }
+  .sphere-title .tooltip { width: 220px; font-size: 11px; }
+  .attr-section { padding: 6px 10px 4px; margin: 4px 0; }
+  .class-prompt { font-size: 1rem; }
+  .hover-hint { font-size: 10px; }
+  .nav-row { gap: 8px; }
+  .nav-row button { padding: 10px; font-size: 0.9rem; }
+  .tut-interface { flex-direction: column; height: auto; max-width: 95%; }
+  .tut-img-col {
+    flex: 0 0 auto; width: 100%; min-height: 200px;
+    height: clamp(200px, 38vh, 280px);
+  }
+  .tut-img-area, .tut-img-stage, .tut-stimulus-stack { min-height: 100%; height: 100%; }
+  .tut-ctrl-col { border-left: none; border-top: 1px solid #444; padding: 10px; }
+  .tut-prompt { font-size: 16px; }
+  .tut-hint { font-size: 12px; }
+  .tut-attr-title { font-size: 13px; }
+  .tut-lbl, .tut-num { font-size: 11px; }
+  .tut-outline-hint { font-size: 12px; }
+  .tut-caption { font-size: 15px; padding: 10px 14px; }
+  .view-cond { font-size: 1rem; padding: 12px 14px; }
+  .attr-box { font-size: 0.95rem; }
+  .fs-btn { font-size: 11px; padding: 6px 12px; }
+  .adapt-circle { width: 150px; height: 150px; }
+  .adapt-cross { font-size: 44px; }
+  #adaptSeconds { font-size: 36px; }
+}
+
+/* ── Small phones (≤480px) ───────────────────────── */
+@media (max-width: 480px) {
+  .card-panel { padding: 16px 14px; margin: 6px auto calc(14px + var(--footer-space) + env(safe-area-inset-bottom)); }
+  .card-panel h1 { font-size: 1.4rem; }
+  .card-panel h2 { font-size: 1.2rem; }
+  .card-panel p { font-size: 0.95rem; }
+  .image-col { min-height: 30vh; }
+  .stimulus-layer { max-height: calc(30vh - 4px); }
+  .ctrl-col { padding: 8px 10px calc(18px + env(safe-area-inset-bottom)); }
+  .sphere-hdr svg { width: 24px; height: 24px; }
+  .sphere-title .tooltip { width: 180px; font-size: 10px; }
+  .prog-copy { font-size: 11px; }
+  .slider-row input[type="range"] { height: 8px; }
+  .slider-val { font-size: 12px; width: 36px; height: 28px; }
+  .tut-interface { border-radius: 8px; }
+  .tut-img-col { min-height: 180px; height: clamp(180px, 34vh, 240px); }
+  .tut-attr-box { padding: 4px 8px 2px; }
+  .view-cond { font-size: 0.9rem; padding: 10px 12px; }
+  .view-cond li { margin-bottom: 4px; }
+}
+
+/* ── Very short screens (landscape phones) ───────── */
+@media (max-height: 480px) {
+  .image-col { min-height: 25vh; max-height: 30vh; flex: 0 0 30vh; }
+  .stimulus-layer { max-height: calc(30vh - 4px); }
+  .ctrl-col { padding: 4px 10px; gap: 2px; }
+  .attr-section { padding: 4px 8px 2px; margin: 2px 0; }
+  .nav-row { margin-top: 4px; }
+  .tut-img-col { min-height: 140px; height: 32vh; }
+  .adapt-circle { width: 120px; height: 120px; }
+  #adaptSeconds { font-size: 28px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!-- FULLSCREEN BUTTON                                                  -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<button class="fs-btn" id="fsToggle">&#x26F6; Fullscreen</button>
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!-- PAGE 1: WELCOME                                                    -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<div id="page-welcome" class="page active card-panel">
+  <h1>Material Perception Experiment</h1>
+
+  <!-- Resume banner (hidden by default, shown when a secure session cookie is present) -->
+  <div id="resumeBanner" style="display:none; border:1px solid rgba(138,180,248,.35); border-radius:10px;
+    background:rgba(138,180,248,.1); padding:16px 20px; margin-bottom:16px;">
+    <p style="margin:0 0 8px; font-weight:600; color:#8AB4F8;">&#x1f504; Welcome back!</p>
+    <p style="margin:0 0 12px; font-size:.95rem;">You have an unfinished session. Would you like to continue where you left off?</p>
+    <div style="display:flex; gap:10px;">
+      <button class="btn-primary" style="flex:1;" onclick="resumeExistingSession()">Continue Experiment</button>
+      <button class="btn-secondary" style="flex:1;" onclick="startFreshSession()">Start New Session</button>
+    </div>
+  </div>
+
+  <p>Welcome, and thank you for your interest in this study!</p>
+  <p>In this experiment, you will view a series of images depicting everyday objects
+     and rate their material appearance on three perceptual attributes:
+     <strong>Glossiness</strong>, <strong>Translucency</strong>, and <strong>Texture</strong>.</p>
+  <p>Each image will be presented one at a time. You will use slider controls
+     to indicate your perception of the object&#8217;s material properties.</p>
+{% if demo_mode %}
+  <div class="demo-note">
+    <strong>Public demo.</strong> This is the interface used in the study, running on
+    <strong>{{ participant_trial_count }}</strong> sample images. Nothing you enter is stored.
+  </div>
+{% else %}
+  <p>This study uses a curated stimulus pool split into
+     <strong>{{ batch_count }}</strong> batches. You will be automatically assigned one
+     <strong>{{ participant_trial_count }}</strong>-trial batch when you start.</p>
+{% endif %}
+  <button class="btn-primary" id="welcomeStartBtn" onclick="showPage('page-recommendations')">Continue</button>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!-- PAGE 2: RECOMMENDATIONS                                            -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<div id="page-recommendations" class="page card-panel">
+  <h1>Viewing Recommendations</h1>
+  <p>To ensure the best results, please follow these guidelines before you begin:</p>
+  <div class="view-cond">
+    &#8226; Use a <b>laptop or desktop monitor</b> for the best experience<br>
+    &#8226; Sit approximately <b>50&#8211;60 cm</b> (arm&#8217;s length) from the screen<br>
+    &#8226; Ensure <b>moderate, even room lighting</b> &#8212; avoid direct sunlight on your screen<br>
+    &#8226; Set screen brightness to a <b>comfortable level</b><br>
+    &#8226; <b>Disable</b> Night Shift / f.lux / blue-light filters<br>
+    &#8226; Set browser zoom to <b>100%</b> (Ctrl/Cmd + 0 to reset)<br>
+    &#8226; Click <b>&#8220;&#x26F6; Fullscreen&#8221;</b> (top-right corner) for the best viewing experience
+  </div>
+  <button class="btn-primary" onclick="showPage('page-demographics')">Continue</button>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!-- PAGE 3: DEMOGRAPHICS                                               -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<div id="page-demographics" class="page card-panel">
+  <h2 style="margin-bottom:8px">About You</h2>
+  <p style="margin-bottom:14px">Please answer the following questions so we can characterise our participant pool.
+     {% if demo_mode %}In this demo your answers are not stored.{% else %}All data is stored anonymously.{% endif %}</p>
+
+  <div class="form-group">
+    <label>Which device are you using?</label>
+    <div class="radio-group" id="deviceGroup">
+      <label><input type="radio" name="device" value="Laptop / Desktop"><span>Laptop / Desktop</span></label>
+      <label><input type="radio" name="device" value="Tablet"><span>Tablet</span></label>
+      <label><input type="radio" name="device" value="Mobile Phone"><span>Mobile Phone</span></label>
+    </div>
+  </div>
+
+  <div class="form-row">
+    <div class="form-group">
+      <label for="ageInput">Age</label>
+      <input type="number" id="ageInput" min="18" max="100" placeholder="e.g. 25">
+    </div>
+    <div class="form-group">
+      <label>Gender</label>
+      <div class="radio-group" id="genderGroup">
+        <label><input type="radio" name="gender" value="Male"><span>Male</span></label>
+        <label><input type="radio" name="gender" value="Female"><span>Female</span></label>
+        <label><input type="radio" name="gender" value="Non-binary"><span>Non-binary</span></label>
+        <label><input type="radio" name="gender" value="Prefer not to say"><span>Prefer not to say</span></label>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label>Do you have a colour vision deficiency?</label>
+    <div class="radio-group" id="cvdGroup">
+      <label><input type="radio" name="cvd" value="No"><span>No</span></label>
+      <label><input type="radio" name="cvd" value="Yes"><span>Yes</span></label>
+      <label><input type="radio" name="cvd" value="Not sure"><span>Not sure</span></label>
+    </div>
+  </div>
+
+  <div class="form-group" id="cvdTypeGroup" style="display:none;">
+    <label for="cvdType">If yes &#8212; do you know the type?</label>
+    <select id="cvdType">
+      <option value="">-- Select --</option>
+      <option value="Protanopia (red-blind)">Protanopia (red-blind)</option>
+      <option value="Deuteranopia (green-blind)">Deuteranopia (green-blind)</option>
+      <option value="Tritanopia (blue-blind)">Tritanopia (blue-blind)</option>
+      <option value="Protanomaly (red-weak)">Protanomaly (red-weak)</option>
+      <option value="Deuteranomaly (green-weak)">Deuteranomaly (green-weak)</option>
+      <option value="Tritanomaly (blue-weak)">Tritanomaly (blue-weak)</option>
+      <option value="Achromatopsia (total)">Achromatopsia (total)</option>
+      <option value="Not sure">Not sure</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label>Do you use vision correction?</label>
+    <div class="radio-group" id="glassesGroup">
+      <label><input type="radio" name="glasses" value="No correction needed"><span>No correction needed</span></label>
+      <label><input type="radio" name="glasses" value="Glasses"><span>Glasses</span></label>
+      <label><input type="radio" name="glasses" value="Contact lenses"><span>Contact lenses</span></label>
+      <label><input type="radio" name="glasses" value="Both (glasses + contacts)"><span>Both (glasses + contacts)</span></label>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label>Are you a color scientist or color/vision researcher?</label>
+    <div class="radio-group" id="colorScientistGroup">
+      <label><input type="radio" name="color_scientist" value="No"><span>No</span></label>
+      <label><input type="radio" name="color_scientist" value="Yes"><span>Yes</span></label>
+      <label><input type="radio" name="color_scientist" value="Prefer not to say"><span>Prefer not to say</span></label>
+    </div>
+  </div>
+
+  <hr>
+
+  <label class="checkbox-label">
+    <input type="checkbox" id="consentCheck">
+    I consent to participate in this experiment and confirm that I am at least 18 years old.
+  </label>
+
+  <div class="err-msg" id="demoError"></div>
+  <button class="btn-primary" onclick="submitDemographics()">Continue</button>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!-- PAGE 4: TUTORIAL                                                   -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<div id="page-tutorial" class="page card-panel">
+  <h1>How It Works</h1>
+  <p>Below is a short demonstration of the real experiment interface using sample stimuli from the study.
+     Watch how press-and-hold focus and the three sliders work before you begin.</p>
+  <div class="example-gif-box">
+    <div class="tut-wrap" id="tutRoot">
+      <div class="tut-interface">
+        <div class="tut-img-col">
+          <div class="tut-img-area" id="tutImgArea">
+            <div class="tut-img-stage tut-stimulus-stack" id="tutStimulusStack">
+              <img id="tutStimulusBase" class="tut-stimulus-layer" src="" alt="Tutorial stimulus image">
+              <img id="tutStimulusFocus" class="tut-stimulus-layer tut-stimulus-layer-focus" src="" alt="" aria-hidden="true">
+              <div class="tut-hold-flash" id="tutHoldFlash" aria-hidden="true"></div>
+              <div class="tut-outline-hint" id="tutOutlineHint">Press &amp; hold to isolate the material mask</div>
+            </div>
+          </div>
+        </div>
+        <div class="tut-ctrl-col">
+          <div class="tut-prompt" id="tutPrompt">Rate this <b>Metal</b>:</div>
+          <div class="tut-hint">Press &amp; hold the image to focus; hover/tap attribute names for definitions</div>
+          <div class="tut-attr-box">
+            <div class="tut-attr-hdr"><span class="tut-lbl">Matte</span><span class="tut-attr-title">Glossiness</span><span class="tut-lbl">Glossy</span></div>
+            <div class="tut-slider-row"><span class="tut-num">0</span><div class="tut-track"><div class="tut-fill" id="tutFillG"></div><div class="tut-thumb" id="tutThumbG"></div></div><span class="tut-num">10</span></div>
+          </div>
+          <div class="tut-attr-box">
+            <div class="tut-attr-hdr"><span class="tut-lbl">Opaque</span><span class="tut-attr-title">Translucency</span><span class="tut-lbl">Translucent</span></div>
+            <div class="tut-slider-row"><span class="tut-num">0</span><div class="tut-track"><div class="tut-fill" id="tutFillT"></div><div class="tut-thumb" id="tutThumbT"></div></div><span class="tut-num">10</span></div>
+          </div>
+          <div class="tut-attr-box">
+            <div class="tut-attr-hdr"><span class="tut-lbl">Smooth</span><span class="tut-attr-title">Texture</span><span class="tut-lbl">Textured</span></div>
+            <div class="tut-slider-row"><span class="tut-num">0</span><div class="tut-track"><div class="tut-fill" id="tutFillX"></div><div class="tut-thumb" id="tutThumbX"></div></div><span class="tut-num">10</span></div>
+          </div>
+          <div class="tut-nav"><div class="tut-btn-prev">Previous</div><div class="tut-btn-next" id="tutNextBtn">Next</div></div>
+        </div>
+      </div>
+      <div class="tut-caption" id="tutCaption"></div>
+    </div>
+  </div>
+  <button class="btn-primary" onclick="startAdaptation()">Start Experiment</button>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!-- PAGE 5: ADAPTATION                                                 -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<div id="page-adaptation" class="page">
+  <div class="adapt-circle">
+    <svg width="200" height="200" style="position:absolute;transform:rotate(-90deg)">
+      <circle cx="100" cy="100" r="85" fill="none" stroke="#555" stroke-width="6"/>
+      <circle id="adaptArc" cx="100" cy="100" r="85" fill="none" stroke="#8AB4F8" stroke-width="6"
+              stroke-dasharray="534" stroke-dashoffset="534"
+              stroke-linecap="round" style="transition:stroke-dashoffset .85s linear"/>
+    </svg>
+    <span class="adapt-cross">+</span>
+  </div>
+  <div id="adaptSeconds">{{ adaptation_seconds }}s</div>
+  <div class="adapt-label">Adaptation Phase</div>
+  <div class="adapt-sublabel">
+    Fixate on the cross and let your eyes adapt.<br>
+    The experiment begins automatically.
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!-- PAGE 6: EXPERIMENT                                                 -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<div id="page-experiment" class="page">
+  <div class="image-col">
+    <div class="stimulus-stack" id="stimulusStack">
+      <div class="stimulus-spinner" id="stimulusSpinner"></div>
+      <img id="stimulusImgBase" class="stimulus-layer" src="" alt="Stimulus image">
+      <img id="stimulusImgFocus" class="stimulus-layer stimulus-layer-focus" src="" alt="" aria-hidden="true">
+    </div>
+    <div class="outline-hint" id="outlineHint">Press &amp; hold to isolate the material mask</div>
+  </div>
+  <div class="ctrl-col">
+    <div class="prog-shell">
+      <div class="prog-copy">
+        <span id="progLabel">Trial 1 / {{ participant_trial_count }}</span>
+        <span id="progSaved">0 {{ 'rated' if demo_mode else 'saved' }}</span>
+      </div>
+      <div class="prog-track"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+    </div>
+    <div id="breakBanner" class="banner notice" style="display:none;"></div>
+    <div class="class-prompt" id="classPrompt">Rate this <b>Object</b>:</div>
+    <div class="stimulus-meta" id="stimulusMeta"></div>
+    <div class="hover-hint">Hover over the attribute names for definitions</div>
+
+    <!-- Glossiness -->
+    <div class="attr-section">
+      <div class="sphere-hdr">
+        <div class="side">
+          <svg width="36" height="36" xmlns="http://www.w3.org/2000/svg">
+            <defs><radialGradient id="g-matte" cx="50%" cy="50%" r="60%">
+              <stop offset="0%" stop-color="#1a1a1a"/><stop offset="100%" stop-color="#0a0a0a"/>
+            </radialGradient></defs>
+            <circle cx="18" cy="18" r="16" fill="url(#g-matte)"/>
+          </svg>
+          <span>Matte</span>
+        </div>
+        <span class="sphere-title">Glossiness<span class="tooltip">How shiny or reflective the surface appears. 0 = completely matte (diffuse, no reflections). 10 = mirror-like gloss (sharp reflections).</span></span>
+        <div class="side">
+          <span>Glossy</span>
+          <svg width="36" height="36" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <radialGradient id="g-gl-b" cx="42%" cy="42%" r="75%">
+                <stop offset="0%" stop-color="#2a2a2a"/><stop offset="40%" stop-color="#111111"/>
+                <stop offset="100%" stop-color="#000000"/>
+              </radialGradient>
+              <radialGradient id="g-gl-s" cx="28%" cy="26%" r="12%">
+                <stop offset="0%" stop-color="white" stop-opacity="1"/>
+                <stop offset="40%" stop-color="white" stop-opacity="0.95"/>
+                <stop offset="70%" stop-color="white" stop-opacity="0.4"/>
+                <stop offset="100%" stop-color="white" stop-opacity="0"/>
+              </radialGradient>
+              <radialGradient id="g-gl-e" cx="50%" cy="50%" r="50%">
+                <stop offset="80%" stop-color="white" stop-opacity="0"/>
+                <stop offset="94%" stop-color="white" stop-opacity="0.25"/>
+                <stop offset="100%" stop-color="white" stop-opacity="0"/>
+              </radialGradient>
+            </defs>
+            <circle cx="18" cy="18" r="16" fill="url(#g-gl-b)"/>
+            <circle cx="18" cy="18" r="16" fill="url(#g-gl-e)"/>
+            <circle cx="18" cy="18" r="16" fill="url(#g-gl-s)"/>
+          </svg>
+        </div>
+      </div>
+      <div class="slider-row">
+        <span class="num">0</span>
+        <input type="range" id="glossSlider" min="0" max="10" step="0.1" value="5">
+        <span class="num">10</span>
+        <span class="slider-val" id="glossVal">5</span>
+      </div>
+    </div>
+
+    <!-- Translucency -->
+    <div class="attr-section">
+      <div class="sphere-hdr">
+        <div class="side">
+          <svg width="36" height="36" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <radialGradient id="g-op" cx="38%" cy="38%" r="80%">
+                <stop offset="0%" stop-color="#c88c64"/><stop offset="30%" stop-color="#aa6e46"/>
+                <stop offset="60%" stop-color="#784b2d"/><stop offset="100%" stop-color="#321e12"/>
+              </radialGradient>
+              <radialGradient id="g-op-s" cx="35%" cy="32%" r="15%">
+                <stop offset="0%" stop-color="white" stop-opacity="0.31"/>
+                <stop offset="100%" stop-color="white" stop-opacity="0"/>
+              </radialGradient>
+            </defs>
+            <circle cx="18" cy="18" r="16" fill="url(#g-op)"/>
+            <circle cx="18" cy="18" r="16" fill="url(#g-op-s)"/>
+          </svg>
+          <span>Opaque</span>
+        </div>
+        <span class="sphere-title">Translucency<span class="tooltip">How much subsurface light scattering the material shows. 0 = fully opaque (no light passes through). 10 = highly translucent (strong subsurface scattering, e.g. wax, skin, jade).</span></span>
+        <div class="side">
+          <span>Translucent</span>
+          <svg width="36" height="36" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="g-chk" x="0" y="0" width="8" height="8" patternUnits="userSpaceOnUse">
+                <rect width="4" height="4" fill="#555"/><rect x="4" y="4" width="4" height="4" fill="#555"/>
+                <rect x="4" width="4" height="4" fill="#3a3a3a"/><rect y="4" width="4" height="4" fill="#3a3a3a"/>
+              </pattern>
+              <radialGradient id="g-tr-g" cx="40%" cy="40%" r="75%">
+                <stop offset="0%" stop-color="#b4dcff" stop-opacity="0.16"/>
+                <stop offset="100%" stop-color="#5078a0" stop-opacity="0.20"/>
+              </radialGradient>
+              <radialGradient id="g-tr-s" cx="35%" cy="32%" r="14%">
+                <stop offset="0%" stop-color="white" stop-opacity="0.55"/>
+                <stop offset="100%" stop-color="white" stop-opacity="0"/>
+              </radialGradient>
+              <clipPath id="g-tr-c"><circle cx="18" cy="18" r="16"/></clipPath>
+            </defs>
+            <g clip-path="url(#g-tr-c)"><circle cx="18" cy="18" r="16" fill="url(#g-chk)"/>
+              <circle cx="18" cy="18" r="16" fill="url(#g-tr-g)"/></g>
+            <circle cx="18" cy="18" r="16" fill="none" stroke="#b4d2f0" stroke-opacity="0.4" stroke-width="1.2"/>
+            <circle cx="18" cy="18" r="16" fill="url(#g-tr-s)"/>
+          </svg>
+        </div>
+      </div>
+      <div class="slider-row">
+        <span class="num">0</span>
+        <input type="range" id="transSlider" min="0" max="10" step="0.1" value="5">
+        <span class="num">10</span>
+        <span class="slider-val" id="transVal">5</span>
+      </div>
+    </div>
+
+    <!-- Texture -->
+    <div class="attr-section">
+      <div class="sphere-hdr">
+        <div class="side">
+          <svg width="36" height="36" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <radialGradient id="g-sm" cx="40%" cy="38%" r="78%">
+                <stop offset="0%" stop-color="#c0d0e4"/><stop offset="25%" stop-color="#88a4c4"/>
+                <stop offset="55%" stop-color="#4a6a90"/><stop offset="85%" stop-color="#1e3050"/>
+                <stop offset="100%" stop-color="#0c1828"/>
+              </radialGradient>
+              <radialGradient id="g-sm-s" cx="32%" cy="30%" r="16%">
+                <stop offset="0%" stop-color="white" stop-opacity="0.7"/>
+                <stop offset="50%" stop-color="white" stop-opacity="0.25"/>
+                <stop offset="100%" stop-color="white" stop-opacity="0"/>
+              </radialGradient>
+            </defs>
+            <circle cx="18" cy="18" r="16" fill="url(#g-sm)"/>
+            <circle cx="18" cy="18" r="16" fill="url(#g-sm-s)"/>
+          </svg>
+          <span>Smooth</span>
+        </div>
+        <span class="sphere-title">Texture<span class="tooltip">How rough or patterned the surface appears. 0 = perfectly smooth (uniform). 10 = highly textured (visibly rough or bumpy).</span></span>
+        <div class="side">
+          <span>Textured</span>
+          <svg width="36" height="36" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <radialGradient id="g-tx" cx="38%" cy="38%" r="80%">
+                <stop offset="0%" stop-color="#c8b89a"/><stop offset="40%" stop-color="#9a8a6e"/>
+                <stop offset="70%" stop-color="#6a5e48"/><stop offset="100%" stop-color="#302a1e"/>
+              </radialGradient>
+              <radialGradient id="g-tx-s" cx="35%" cy="32%" r="15%">
+                <stop offset="0%" stop-color="white" stop-opacity="0.2"/>
+                <stop offset="100%" stop-color="white" stop-opacity="0"/>
+              </radialGradient>
+              <clipPath id="g-tx-c"><circle cx="18" cy="18" r="16"/></clipPath>
+              <filter id="g-tx-coarse">
+                <feTurbulence type="turbulence" baseFrequency="0.35" numOctaves="3" seed="7"/>
+                <feColorMatrix type="saturate" values="0"/>
+                <feComponentTransfer><feFuncA type="linear" slope="0.5"/></feComponentTransfer>
+                <feComposite in2="SourceGraphic" operator="in"/>
+              </filter>
+              <filter id="g-tx-fine">
+                <feTurbulence type="fractalNoise" baseFrequency="1.2" numOctaves="5" seed="42"/>
+                <feColorMatrix type="saturate" values="0"/>
+                <feComponentTransfer><feFuncA type="linear" slope="0.35"/></feComponentTransfer>
+                <feComposite in2="SourceGraphic" operator="in"/>
+              </filter>
+              <filter id="g-tx-bump">
+                <feTurbulence type="turbulence" baseFrequency="0.5" numOctaves="2" seed="15"/>
+                <feColorMatrix type="saturate" values="0"/>
+                <feDiffuseLighting surfaceScale="4" diffuseConstant="0.8" lighting-color="white">
+                  <feDistantLight azimuth="225" elevation="45"/>
+                </feDiffuseLighting>
+                <feComposite in2="SourceGraphic" operator="in" result="lit"/>
+                <feComponentTransfer><feFuncA type="linear" slope="0.4"/></feComponentTransfer>
+                <feComposite in2="SourceGraphic" operator="in"/>
+              </filter>
+            </defs>
+            <circle cx="18" cy="18" r="16" fill="url(#g-tx)"/>
+            <g clip-path="url(#g-tx-c)">
+              <rect width="36" height="36" filter="url(#g-tx-coarse)" opacity="0.8"/>
+              <rect width="36" height="36" filter="url(#g-tx-fine)" opacity="0.6"/>
+              <rect width="36" height="36" filter="url(#g-tx-bump)" opacity="0.5"/>
+            </g>
+            <circle cx="18" cy="18" r="16" fill="url(#g-tx-s)"/>
+          </svg>
+        </div>
+      </div>
+      <div class="slider-row">
+        <span class="num">0</span>
+        <input type="range" id="texSlider" min="0" max="10" step="0.1" value="5">
+        <span class="num">10</span>
+        <span class="slider-val" id="texVal">5</span>
+      </div>
+    </div>
+
+    <div id="networkError" style="display:none; background:rgba(242,139,130,.15); border:1px solid rgba(242,139,130,.4);
+      border-radius:6px; padding:6px 10px; margin-top:4px; font-size:12px; color:#f28b82; text-align:center;">
+      <span id="networkErrorMsg">Network error.</span>
+      <button onclick="retryLastAction()" style="margin-left:8px; padding:2px 10px; border-radius:4px;
+        border:1px solid #f28b82; background:rgba(242,139,130,.15); color:#f28b82; cursor:pointer; font-size:11px;">Retry</button>
+    </div>
+    <div class="nav-row">
+      <button class="btn-secondary" id="prevBtn" onclick="goPrevious()" disabled>Previous</button>
+      <button class="btn-secondary" id="nextBtn" onclick="goNext()" style="background:#4a4d50;">Next</button>
+      <button class="btn-primary" id="submitBtn" onclick="submitExperiment()" style="display:none;flex:1;">Submit</button>
+    </div>
+  </div>
+</div>
+
+<div id="finalCommentModal" class="comment-modal" role="dialog" aria-modal="true" aria-labelledby="finalCommentTitle">
+  <div class="comment-card">
+    <h2 id="finalCommentTitle">Final Comment</h2>
+    <p>If you have any comment about the experiment, you can write it below. This is optional and limited to 200 characters.</p>
+    <textarea id="finalCommentText" maxlength="200" placeholder="Optional comment..."></textarea>
+    <div class="comment-count"><span id="finalCommentCount">0</span> / 200</div>
+    <div class="comment-actions">
+      <button class="btn-secondary" type="button" onclick="closeFinalComment()">Cancel</button>
+      <button class="btn-secondary" type="button" onclick="finishExperiment(false)">Submit without comment</button>
+      <button class="btn-primary" type="button" onclick="finishExperiment(true)">Submit Experiment</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!-- PAGE 7: COMPLETION                                                 -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<div id="page-completion" class="page">
+  <div class="completion-check">&#10003;</div>
+  <h1 style="font-size:32px;font-weight:300;margin:0 0 12px;">Thank you for participating</h1>
+  <p style="color:#9AA0A6;font-size:16px;margin:0 0 32px;max-width:500px;">
+    {% if demo_mode %}This was a demo, so no responses were saved.{% else %}Your responses have been recorded successfully.{% endif %}<br>
+    You may now close this window.
+  </p>
+  <div class="completion-box">
+    <div class="label">Trials completed</div>
+    <div class="value" id="compTrials">0 / 0</div>
+    <div class="label">Completed at</div>
+    <div class="value" id="compTime" style="font-size:14px;"></div>
+    <div class="label">Storage</div>
+    <div class="value accent" id="compStorage" style="font-size:14px;margin-bottom:0;"></div>
+  </div>
+  <p style="color:#5a5a5a;font-size:11px;margin-top:20px;" id="compSaveMsg"></p>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!-- JAVASCRIPT                                                         -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<script>
+(function() {
+  "use strict";
+
+  // ── State ──────────────────────────────────────────
+  var currentTrialKey = null;
+  var _lastRequestPayload = null;
+  var _resumeTrial = null;
+  var _navRequestInFlight = false;
+  var _prefetchTimer = null;
+  var _prefetchImages = [];
+  var adaptTotal = {{ adaptation_seconds }};
+  var DEMO_MODE = {{ 'true' if demo_mode else 'false' }};
+  var adaptTimer = null;
+
+  function resetResumeBanner() {
+    var banner = document.getElementById('resumeBanner');
+    var btn = banner.querySelector('.btn-primary');
+    btn.disabled = false;
+    btn.textContent = 'Continue Experiment';
+  }
+
+  function hideResumeBanner() {
+    resetResumeBanner();
+    document.getElementById('resumeBanner').style.display = 'none';
+  }
+
+  function showResumeBanner(trialData) {
+    _resumeTrial = trialData;
+    resetResumeBanner();
+    document.getElementById('resumeBanner').style.display = 'block';
+  }
+
+  function clearSessionCookie() {
+    return fetch('/api/session', { method: 'DELETE' }).catch(function() {});
+  }
+
+  // Check for an unfinished secure-cookie session on page load
+  (function checkResume() {
+    fetch('/api/session', { method: 'GET' })
+      .then(function(r) {
+        if (r.status === 404) return null;
+        return r.json().then(function(d) { return { ok: r.ok, data: d, status: r.status }; });
+      })
+      .then(function(res) {
+        if (!res || !res.ok || !res.data.ok || !res.data.trial || res.data.completed) return;
+        showResumeBanner(res.data.trial);
+      })
+      .catch(function() {});
+  })();
+
+  // Resume existing session — skip demographics, show adaptation then experiment
+  window.resumeExistingSession = function() {
+    if (!_resumeTrial) return;
+
+    document.getElementById('resumeBanner').querySelector('.btn-primary').disabled = true;
+    document.getElementById('resumeBanner').querySelector('.btn-primary').textContent = 'Resuming...';
+    window._pendingTrial = _resumeTrial;
+    hideResumeBanner();
+    showPage('page-adaptation');
+    startAdaptation();
+  };
+
+  // Start fresh — clear old session and continue normal flow
+  window.startFreshSession = function() {
+    _resumeTrial = null;
+    hideResumeBanner();
+    clearSessionCookie();
+    showPage('page-recommendations');
+  };
+
+  // ── Page navigation ────────────────────────────────
+  window.showPage = function(id) {
+    document.querySelectorAll('.page').forEach(function(p) {
+      p.classList.remove('active');
+    });
+    var el = document.getElementById(id);
+    if (el) el.classList.add('active');
+    // Hide copyright footer during experiment and adaptation
+    var footer = document.querySelector('.copyright-footer');
+    if (footer) {
+      footer.style.display = (id === 'page-experiment' || id === 'page-adaptation') ? 'none' : 'block';
+    }
+  };
+
+  // ── Press-and-hold to show focused view (dim non-mask) ──
+  var _normalSrc = '';
+  var _normalBaseUrl = '';
+  var _blurSrc = '';
+  var _blurBaseUrl = '';
+  window.setStimulusFocused = function() {};
+  window.refreshStimulusRenderImages = function() {};
+  function buildSizedRenderUrl(baseUrl, stackEl) {
+    if (!baseUrl || !stackEl) return baseUrl || '';
+    // Pre-rendered static files don't need size params
+    if (baseUrl.indexOf('/api/prerendered/') >= 0 || baseUrl.indexOf('/prerendered/') >= 0) {
+      return baseUrl;
+    }
+    var rect = stackEl.getBoundingClientRect();
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var width = Math.max(640, Math.round(rect.width * dpr));
+    var height = Math.max(640, Math.round(rect.height * dpr));
+    width = Math.min(width, 2200);
+    height = Math.min(height, 2200);
+    var url = new URL(baseUrl, window.location.origin);
+    url.searchParams.set('w', String(width));
+    url.searchParams.set('h', String(height));
+    url.searchParams.set('fmt', 'webp');
+    url.searchParams.set('q', '85');
+    return url.toString();
+  }
+  (function() {
+    var stack = document.getElementById('stimulusStack');
+    var baseImg = document.getElementById('stimulusImgBase');
+    var focusImg = document.getElementById('stimulusImgFocus');
+    var hint = document.getElementById('outlineHint');
+    var spinner = document.getElementById('stimulusSpinner');
+
+    function showSpinner() { spinner.classList.remove('hidden'); }
+    function hideSpinner() { spinner.classList.add('hidden'); }
+
+    function refreshRenderImages() {
+      _normalSrc = buildSizedRenderUrl(_normalBaseUrl, stack);
+      _blurSrc = buildSizedRenderUrl(_blurBaseUrl, stack);
+      // Reset loaded state — show spinner, hide images
+      baseImg.classList.remove('loaded');
+      focusImg.classList.remove('loaded');
+      showSpinner();
+      baseImg.src = _normalSrc || _normalBaseUrl || '';
+      focusImg.src = _blurSrc || _normalSrc || _normalBaseUrl || '';
+    }
+
+    // Fade in base image when loaded
+    baseImg.addEventListener('load', function() {
+      baseImg.classList.add('loaded');
+      hideSpinner();
+    });
+    // Fade in focus image when loaded
+    focusImg.addEventListener('load', function() {
+      focusImg.classList.add('loaded');
+    });
+
+    function applyStimulusFocus(focused) {
+      var isFocused = Boolean(focused && _blurSrc);
+      stack.classList.toggle('is-focused', isFocused);
+      hint.classList.toggle('active', isFocused);
+    }
+    function showFocused(e) {
+      if (e) e.preventDefault();
+      applyStimulusFocus(true);
+    }
+    function showNormal() {
+      applyStimulusFocus(false);
+    }
+    window.setStimulusFocused = applyStimulusFocus;
+
+    function handlePointerDown(e) {
+      if (typeof e.button === 'number' && e.button !== 0) return;
+      if (stack.setPointerCapture && typeof e.pointerId === 'number') {
+        try { stack.setPointerCapture(e.pointerId); } catch (err) {}
+      }
+      showFocused(e);
+    }
+    if (window.PointerEvent) {
+      stack.addEventListener('pointerdown', handlePointerDown);
+      stack.addEventListener('pointerup', showNormal);
+      stack.addEventListener('pointerleave', showNormal);
+      stack.addEventListener('pointercancel', showNormal);
+      document.addEventListener('pointerup', showNormal);
+    } else {
+      stack.addEventListener('mousedown', showFocused);
+      stack.addEventListener('mouseup', showNormal);
+      stack.addEventListener('mouseleave', showNormal);
+      stack.addEventListener('touchstart', showFocused, { passive: false });
+      stack.addEventListener('touchend', showNormal);
+      stack.addEventListener('touchcancel', showNormal);
+      document.addEventListener('mouseup', showNormal);
+      document.addEventListener('touchend', showNormal);
+    }
+    stack.addEventListener('contextmenu', function(e) { e.preventDefault(); });
+    window.addEventListener('blur', showNormal);
+    document.addEventListener('visibilitychange', function() {
+      if (document.hidden) showNormal();
+    });
+    var resizeTimer = null;
+    window.addEventListener('resize', function() {
+      if (!_normalBaseUrl && !_blurBaseUrl) return;
+      if (resizeTimer) clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(refreshRenderImages, 120);
+    });
+    baseImg.draggable = false;
+    focusImg.draggable = false;
+
+    // Retry on image load failure (network glitch, server restart)
+    baseImg.addEventListener('error', function() {
+      var retries = parseInt(baseImg.dataset.retries || '0', 10);
+      if (retries < 3 && (_normalSrc || _normalBaseUrl)) {
+        baseImg.dataset.retries = String(retries + 1);
+        setTimeout(function() {
+          var baseCandidate = _normalSrc || _normalBaseUrl;
+          var retrySuffix = ((baseCandidate.indexOf('?') >= 0 ? '&' : '?') + '_r=' + retries);
+          baseImg.src = baseCandidate + retrySuffix;
+          if (_blurBaseUrl) {
+            refreshRenderImages();
+          }
+        }, 1000 * (retries + 1));
+      } else {
+        hideSpinner();
+        baseImg.alt = 'Image failed to load — try pressing Next and then Previous to reload.';
+      }
+    });
+    window.refreshStimulusRenderImages = refreshRenderImages;
+  })();
+
+  // ── Fullscreen toggle ──────────────────────────────
+  var fsBtn = document.getElementById('fsToggle');
+  function fullscreenElement() {
+    return document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement || null;
+  }
+  function isPseudoFullscreen() {
+    return document.body.classList.contains('pseudo-fullscreen');
+  }
+  function syncFullscreenButton() {
+    fsBtn.textContent = (fullscreenElement() || isPseudoFullscreen())
+      ? '\u2715 Exit Fullscreen'
+      : '\u26F6 Fullscreen';
+  }
+  function enterPseudoFullscreen() {
+    document.body.classList.add('pseudo-fullscreen');
+    window.scrollTo(0, 0);
+    syncFullscreenButton();
+  }
+  function exitPseudoFullscreen() {
+    document.body.classList.remove('pseudo-fullscreen');
+    syncFullscreenButton();
+  }
+  function enterFullscreen() {
+    var target = document.documentElement;
+    var req = target.requestFullscreen || target.webkitRequestFullscreen || target.msRequestFullscreen;
+    if (!req) {
+      enterPseudoFullscreen();
+      return;
+    }
+    try {
+      var result = req.call(target);
+      if (result && typeof result.then === 'function') {
+        result.then(syncFullscreenButton).catch(function() {
+          enterPseudoFullscreen();
+        });
+      } else {
+        syncFullscreenButton();
+      }
+    } catch (err) {
+      enterPseudoFullscreen();
+    }
+  }
+  function exitFullscreen() {
+    var ex = document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen;
+    if (!fullscreenElement()) {
+      exitPseudoFullscreen();
+      return;
+    }
+    try {
+      var result = ex ? ex.call(document) : null;
+      if (result && typeof result.then === 'function') {
+        result.then(syncFullscreenButton).catch(syncFullscreenButton);
+      } else {
+        syncFullscreenButton();
+      }
+    } catch (err) {
+      syncFullscreenButton();
+    }
+  }
+  fsBtn.onclick = function() {
+    if (fullscreenElement() || isPseudoFullscreen()) exitFullscreen();
+    else enterFullscreen();
+  };
+  document.addEventListener('fullscreenchange', syncFullscreenButton);
+  document.addEventListener('webkitfullscreenchange', syncFullscreenButton);
+  document.addEventListener('msfullscreenchange', syncFullscreenButton);
+  syncFullscreenButton();
+
+  // ── Tooltip positioning (fixed, escapes overflow) ──
+  document.addEventListener('mouseover', function(e) {
+    var title = e.target.closest('.sphere-title');
+    if (!title) return;
+    var tip = title.querySelector('.tooltip');
+    if (!tip) return;
+    tip.style.display = 'block';
+    tip.style.visibility = 'hidden';
+    var rect = title.getBoundingClientRect();
+    var tipH = tip.offsetHeight;
+    tip.style.left = Math.max(4, rect.left + rect.width / 2 - 130) + 'px';
+    tip.style.top = (rect.top - tipH - 8) + 'px';
+    tip.style.visibility = '';
+  });
+  document.addEventListener('mouseout', function(e) {
+    var title = e.target.closest('.sphere-title');
+    if (!title) return;
+    var tip = title.querySelector('.tooltip');
+    if (tip) tip.style.display = 'none';
+  });
+
+  // ── CVD type toggle ────────────────────────────────
+  document.querySelectorAll('input[name="cvd"]').forEach(function(r) {
+    r.addEventListener('change', function() {
+      document.getElementById('cvdTypeGroup').style.display =
+        (this.value === 'Yes') ? 'block' : 'none';
+    });
+  });
+
+  // ── Slider value display ───────────────────────────
+  function formatRating(value) {
+    var n = Number(value);
+    if (!Number.isFinite(n)) n = 5;
+    return n.toFixed(1);
+  }
+
+  function linkSlider(sliderId, valId) {
+    var s = document.getElementById(sliderId);
+    var v = document.getElementById(valId);
+    s.addEventListener('input', function() { v.textContent = formatRating(s.value); });
+    v.textContent = formatRating(s.value);
+  }
+  linkSlider('glossSlider', 'glossVal');
+  linkSlider('transSlider', 'transVal');
+  linkSlider('texSlider', 'texVal');
+
+  // ── Helper: get radio value ────────────────────────
+  function radioVal(name) {
+    var el = document.querySelector('input[name="' + name + '"]:checked');
+    return el ? el.value : null;
+  }
+
+  // ── Demographics submit ────────────────────────────
+  window.submitDemographics = function() {
+    var errEl = document.getElementById('demoError');
+    errEl.textContent = '';
+
+    var payload = {
+      device: radioVal('device'),
+      age: document.getElementById('ageInput').value ? parseInt(document.getElementById('ageInput').value) : null,
+      gender: radioVal('gender'),
+      cvd: radioVal('cvd') || 'No',
+      cvd_type: document.getElementById('cvdType').value,
+      glasses: radioVal('glasses') || 'No correction needed',
+      color_scientist: radioVal('color_scientist'),
+      consent: document.getElementById('consentCheck').checked
+    };
+
+    fetch('/api/session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+    .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
+    .then(function(res) {
+      if (!res.ok || !res.data.ok) {
+        errEl.textContent = (res.data.errors || ['Unknown error']).join(' \u00b7 ');
+        return;
+      }
+      _resumeTrial = null;
+      hideResumeBanner();
+      // Store first trial data
+      window._pendingTrial = res.data.trial;
+      showPage('page-tutorial');
+      startTutorialAnimation();
+    })
+    .catch(function(err) {
+      errEl.textContent = 'Network error: ' + err.message;
+    });
+  };
+
+  // ── Adaptation ─────────────────────────────────────
+  window.startAdaptation = function() {
+    showPage('page-adaptation');
+    var seconds = adaptTotal;
+    var circ = 2 * Math.PI * 85;
+    var arc = document.getElementById('adaptArc');
+    var secEl = document.getElementById('adaptSeconds');
+    arc.setAttribute('stroke-dasharray', Math.round(circ));
+    arc.setAttribute('stroke-dashoffset', Math.round(circ));
+
+    function tick() {
+      seconds--;
+      var pct = ((adaptTotal - seconds) / adaptTotal) * 100;
+      var offset = circ * (1 - pct / 100);
+      arc.setAttribute('stroke-dashoffset', Math.round(offset));
+      secEl.textContent = seconds + 's';
+
+      if (seconds <= 0) {
+        clearInterval(adaptTimer);
+        // Show experiment with pending trial data
+        if (window._pendingTrial) {
+          renderTrial(window._pendingTrial);
+          window._pendingTrial = null;
+        }
+        showPage('page-experiment');
+      }
+    }
+    // Kick off first tick after 1s
+    adaptTimer = setInterval(tick, 1000);
+  };
+
+  // ── Render trial data ──────────────────────────────
+  function renderTrial(data) {
+    if (!data || !data.trial_number) {
+      console.error('Invalid trial data:', data);
+      alert('Error loading trial data. Please start a new session.');
+      clearSessionCookie();
+      showPage('page-welcome');
+      return;
+    }
+    if (data.completed) {
+      showCompletion(data);
+      return;
+    }
+    currentTrialKey = data.trial_key || null;
+    _normalBaseUrl = data.image_url;
+    _normalSrc = '';
+    _blurBaseUrl = data.blur_url || '';
+    _blurSrc = '';
+    var stimImgBase = document.getElementById('stimulusImgBase');
+    var stimImgFocus = document.getElementById('stimulusImgFocus');
+    stimImgBase.dataset.retries = '0';
+    // Reset loaded state before loading new images
+    stimImgBase.classList.remove('loaded');
+    stimImgFocus.classList.remove('loaded');
+    stimImgBase.src = '';
+    stimImgFocus.src = '';
+    setStimulusFocused(false);
+    // Clean up old preload links
+    document.querySelectorAll('link[rel="preload"][as="image"]').forEach(function(l) { l.remove(); });
+    requestAnimationFrame(function() {
+      window.refreshStimulusRenderImages();
+    });
+    schedulePrefetch(data.prefetch_next);
+    document.getElementById('progLabel').textContent = 'Trial ' + data.trial_number + ' / ' + data.total_trials;
+    document.getElementById('progSaved').textContent = data.answered + (DEMO_MODE ? ' rated' : ' saved');
+    document.getElementById('progFill').style.width = data.progress_pct + '%';
+    document.getElementById('classPrompt').innerHTML = 'Rate this <b>' + escapeHtml(data.class_label) + '</b>:';
+    document.getElementById('stimulusMeta').textContent = data.observer_stimulus_label || '';
+
+    var bb = document.getElementById('breakBanner');
+    if (data.break_message) {
+      bb.textContent = data.break_message;
+      bb.style.display = 'block';
+    } else {
+      bb.style.display = 'none';
+    }
+
+    // Sliders
+    setSlider('glossSlider', 'glossVal', data.gloss_value);
+    setSlider('transSlider', 'transVal', data.translucency_value);
+    setSlider('texSlider', 'texVal', data.texture_value);
+
+    // Buttons — re-enable and set visibility
+    document.getElementById('prevBtn').disabled = data.is_first;
+    document.getElementById('nextBtn').disabled = false;
+    document.getElementById('submitBtn').disabled = false;
+    if (data.is_last) {
+      document.getElementById('nextBtn').style.display = 'none';
+      document.getElementById('submitBtn').style.display = 'block';
+    } else {
+      document.getElementById('nextBtn').style.display = 'block';
+      document.getElementById('submitBtn').style.display = 'none';
+    }
+  }
+
+  function setSlider(sliderId, valId, val) {
+    var s = document.getElementById(sliderId);
+    var v = document.getElementById(valId);
+    s.value = val;
+    v.textContent = formatRating(val);
+  }
+
+  function escapeHtml(str) {
+    var div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  // ── Show completion ────────────────────────────────
+  function showCompletion(data) {
+    currentTrialKey = null;
+    _lastRequestPayload = null;
+    document.getElementById('compTrials').textContent = data.trials_completed + ' / ' + data.total_trials;
+    document.getElementById('compTime').textContent = data.completed_at || '';
+    document.getElementById('compStorage').textContent = data.storage_backend || '';
+    document.getElementById('compSaveMsg').textContent = data.save_message || '';
+    showPage('page-completion');
+  }
+
+  // ── Collect current slider values ──────────────────
+  function currentRatings() {
+    return {
+      gloss: parseFloat(document.getElementById('glossSlider').value),
+      translucency: parseFloat(document.getElementById('transSlider').value),
+      texture: parseFloat(document.getElementById('texSlider').value),
+      trial_key: currentTrialKey
+    };
+  }
+
+  // ── Navigation ─────────────────────────────────────
+  function hideNetworkError() {
+    document.getElementById('networkError').style.display = 'none';
+  }
+  function showNetworkError(msg) {
+    document.getElementById('networkErrorMsg').textContent = msg || 'Network error. Retry will safely resend the same action.';
+    document.getElementById('networkError').style.display = 'block';
+  }
+  function enableNavButtons() {
+    document.getElementById('prevBtn').disabled = false;
+    document.getElementById('nextBtn').disabled = false;
+    document.getElementById('submitBtn').disabled = false;
+  }
+
+  function makeRequestId() {
+    if (window.crypto && typeof window.crypto.randomUUID === 'function') {
+      return window.crypto.randomUUID();
+    }
+    return 'req-' + Date.now() + '-' + Math.random().toString(16).slice(2);
+  }
+
+  function parseJsonResponse(r) {
+    return r.json().catch(function() { return {}; }).then(function(d) {
+      return { ok: r.ok, status: r.status, data: d };
+    });
+  }
+
+  function loadCurrentTrial(messageOnError) {
+    fetch('/api/trial', { method: 'GET' })
+      .then(parseJsonResponse)
+      .then(function(res) {
+        _navRequestInFlight = false;
+        if (!res.ok || !res.data.ok) {
+          throw new Error((res.data && res.data.error) || 'Could not reload the current trial.');
+        }
+        hideNetworkError();
+        if (res.data.completed) {
+          showCompletion(res.data);
+        } else {
+          renderTrial(res.data);
+          showPage('page-experiment');
+        }
+      })
+      .catch(function(err) {
+        _navRequestInFlight = false;
+        showNetworkError(messageOnError || err.message || 'Could not reload the current trial.');
+        enableNavButtons();
+      });
+  }
+
+  window.retryLastAction = function() {
+    if (_lastRequestPayload && !_navRequestInFlight) {
+      hideNetworkError();
+      sendPreparedRequest(_lastRequestPayload);
+    }
+  };
+
+  function prefetchTrialAssets(prefetch) {
+    var stack = document.getElementById('stimulusStack');
+    if (!stack || !prefetch) return;
+    _prefetchImages = [];
+    [prefetch.image_url, prefetch.blur_url].forEach(function(url) {
+      if (!url) return;
+      var sizedUrl = buildSizedRenderUrl(url, stack) || url;
+      // Use <link rel=preload> for higher priority browser fetch
+      var link = document.createElement('link');
+      link.rel = 'preload';
+      link.as = 'image';
+      link.href = sizedUrl;
+      document.head.appendChild(link);
+      // Also create Image object as fallback
+      var img = new Image();
+      img.decoding = 'async';
+      img.src = sizedUrl;
+      _prefetchImages.push(img);
+    });
+  }
+
+  function schedulePrefetch(prefetch) {
+    if (_prefetchTimer) clearTimeout(_prefetchTimer);
+    _prefetchImages = [];
+    if (!prefetch) return;
+    // Start prefetch immediately — no delay
+    prefetchTrialAssets(prefetch);
+  }
+
+  function sendPreparedRequest(payload) {
+    if (_navRequestInFlight) return;
+    _navRequestInFlight = true;
+    _lastRequestPayload = payload;
+    // Disable buttons during request
+    document.getElementById('prevBtn').disabled = true;
+    document.getElementById('nextBtn').disabled = true;
+    document.getElementById('submitBtn').disabled = true;
+    hideNetworkError();
+
+    fetch('/api/response', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+    .then(parseJsonResponse)
+    .then(function(res) {
+      _navRequestInFlight = false;
+      if (!res.ok || !res.data.ok) {
+        var err = new Error((res.data && res.data.error) || ('Server error (' + res.status + ')'));
+        err.status = res.status;
+        throw err;
+      }
+      _lastRequestPayload = null;
+      if (res.data.completed) {
+        showCompletion(res.data);
+      } else {
+        renderTrial(res.data);
+        showPage('page-experiment');
+      }
+    })
+    .catch(function(err) {
+      _navRequestInFlight = false;
+      console.error('Response error:', err);
+      if (err.status === 409) {
+        _lastRequestPayload = null;
+        loadCurrentTrial(err.message || 'This trial changed before your rating was saved.');
+        return;
+      }
+      showNetworkError('Connection lost — ' + err.message + '. Retry will safely resend the same action.');
+      enableNavButtons();
+    });
+  }
+
+  function sendResponse(action, extra) {
+    var payload = currentRatings();
+    payload.action = action;
+    payload.request_id = makeRequestId();
+    if (extra) {
+      Object.keys(extra).forEach(function(key) {
+        payload[key] = extra[key];
+      });
+    }
+    sendPreparedRequest(payload);
+  }
+
+  window.goNext = function() { sendResponse('next'); };
+  window.goPrevious = function() { sendResponse('previous'); };
+  window.submitExperiment = function() {
+    var modal = document.getElementById('finalCommentModal');
+    var text = document.getElementById('finalCommentText');
+    if (modal) modal.style.display = 'flex';
+    if (text) {
+      text.focus();
+      updateFinalCommentCount();
+    }
+  };
+  window.closeFinalComment = function() {
+    var modal = document.getElementById('finalCommentModal');
+    if (modal) modal.style.display = 'none';
+  };
+  function updateFinalCommentCount() {
+    var text = document.getElementById('finalCommentText');
+    var count = document.getElementById('finalCommentCount');
+    if (!text || !count) return;
+    count.textContent = String(text.value.length);
+  }
+  var finalCommentText = document.getElementById('finalCommentText');
+  if (finalCommentText) {
+    finalCommentText.addEventListener('input', updateFinalCommentCount);
+  }
+  window.finishExperiment = function(includeComment) {
+    var text = document.getElementById('finalCommentText');
+    var comment = includeComment && text ? text.value.trim().slice(0, 200) : '';
+    closeFinalComment();
+    sendResponse('submit', { experiment_comment: comment });
+  };
+
+  // ═══════════════════════════════════════════════════
+  // Tutorial animation with real experiment stimuli
+  // ═══════════════════════════════════════════════════
+  var tutRunning = false;
+  var tutHoldBound = false;
+  var tutorialTrialsData = {{ tutorial_trials|tojson }};
+
+  function startTutorialAnimation() {
+    if (tutRunning) return;
+    tutRunning = true;
+
+    var tutorialTrials = tutorialTrialsData || [];
+    var captions = [
+      function(t){return '<b>Step 1 — Observe:</b> Look at the real sample image on the left. This tutorial uses the same kind of stimulus images you will rate in the experiment.';},
+      function(t){return '<b>Step 2 — Press & hold:</b> On mobile, touch and hold the image to isolate the <b>'+t+'</b> material mask. The surrounding scene is blurred and dimmed while you hold.';},
+      function(t){return '<b>Step 3 — Rate Glossiness:</b> Drag the slider from <em>Matte</em> (0) to <em>Glossy</em> (10) to judge how shiny the target material looks.';},
+      function(t){return '<b>Step 4 — Rate Translucency:</b> Drag from <em>Opaque</em> (0) to <em>Translucent</em> (10) to judge how much subsurface scattering the target material shows.';},
+      function(t){return '<b>Step 5 — Rate Texture:</b> Drag from <em>Smooth</em> (0) to <em>Textured</em> (10) to judge how rough or patterned the target material appears.';},
+      function(t){return '<b>Step 6 — Continue:</b> After rating all three attributes, click <b>Next</b> to move to the next image.';}
+    ];
+    var idx = 0, phase = 0;
+    var phaseTimer = null;
+    var focusTimers = [];
+    var longCaptionMs = 4500;
+    var ratingCaptionMs = 4000;
+
+    function g(id) { return document.getElementById(id); }
+    function ss(fillEl, thumbEl, pct) {
+      fillEl.style.width = pct + '%';
+      thumbEl.style.left = pct + '%';
+    }
+    function resetSliders() {
+      ss(g('tutFillG'), g('tutThumbG'), 50);
+      ss(g('tutFillT'), g('tutThumbT'), 50);
+      ss(g('tutFillX'), g('tutThumbX'), 50);
+    }
+    function setFocusState(active) {
+      var hint = g('tutOutlineHint');
+      if (hint) hint.classList.toggle('active', !!active);
+    }
+    function tutorialShowFocused(e) {
+      if (e && e.preventDefault) e.preventDefault();
+      var stack = g('tutStimulusStack');
+      if (stack && g('tutStimulusFocus').src) stack.classList.add('is-focused');
+      setFocusState(true);
+    }
+    function tutorialShowNormal() {
+      var stack = g('tutStimulusStack');
+      if (stack) stack.classList.remove('is-focused');
+      setFocusState(false);
+    }
+    function clearTutorialTimers() {
+      if (phaseTimer) clearTimeout(phaseTimer);
+      phaseTimer = null;
+      focusTimers.forEach(clearTimeout);
+      focusTimers = [];
+      var stack = g('tutStimulusStack');
+      if (stack) stack.classList.remove('attention-flash');
+    }
+    function bindTutorialHold() {
+      if (tutHoldBound) return;
+      var stack = g('tutStimulusStack');
+      if (!stack) return;
+      tutHoldBound = true;
+      function handlePointerDown(e) {
+        if (typeof e.button === 'number' && e.button !== 0) return;
+        if (stack.setPointerCapture && typeof e.pointerId === 'number') {
+          try { stack.setPointerCapture(e.pointerId); } catch (err) {}
+        }
+        tutorialShowFocused(e);
+      }
+      if (window.PointerEvent) {
+        stack.addEventListener('pointerdown', handlePointerDown);
+        stack.addEventListener('pointerup', tutorialShowNormal);
+        stack.addEventListener('pointerleave', tutorialShowNormal);
+        stack.addEventListener('pointercancel', tutorialShowNormal);
+        document.addEventListener('pointerup', tutorialShowNormal);
+      } else {
+        stack.addEventListener('mousedown', tutorialShowFocused);
+        stack.addEventListener('mouseup', tutorialShowNormal);
+        stack.addEventListener('mouseleave', tutorialShowNormal);
+        stack.addEventListener('touchstart', tutorialShowFocused, { passive: false });
+        stack.addEventListener('touchend', tutorialShowNormal);
+        stack.addEventListener('touchcancel', tutorialShowNormal);
+        document.addEventListener('mouseup', tutorialShowNormal);
+        document.addEventListener('touchend', tutorialShowNormal);
+      }
+      stack.addEventListener('contextmenu', function(e) { e.preventDefault(); });
+    }
+    function preloadImages() {
+      tutorialTrials.forEach(function(trial) {
+        var a = new Image(); a.src = trial.imageUrl;
+      });
+    }
+    function triggerHoldAttention() {
+      var stack = g('tutStimulusStack');
+      if (!stack) return;
+      stack.classList.remove('attention-flash');
+      void stack.offsetWidth;
+      stack.classList.add('attention-flash');
+      focusTimers.push(setTimeout(function() {
+        stack.classList.remove('attention-flash');
+      }, 2600));
+    }
+    function loadTrial(trial) {
+      var baseImg = g('tutStimulusBase');
+      var focusImg = g('tutStimulusFocus');
+      var stack = g('tutStimulusStack');
+      var prompt = g('tutPrompt');
+      var nextBtn = g('tutNextBtn');
+      if (!baseImg || !focusImg || !stack || !prompt || !nextBtn) return;
+      baseImg.src = buildSizedRenderUrl(trial.imageUrl, stack) || trial.imageUrl;
+      focusImg.src = buildSizedRenderUrl(trial.blurUrl, stack) || trial.blurUrl || trial.imageUrl;
+      baseImg.draggable = false;
+      focusImg.draggable = false;
+      prompt.innerHTML = 'Rate this <b>' + escapeHtml(trial.classLabel) + '</b>:';
+      tutorialShowNormal();
+      resetSliders();
+      nextBtn.className = 'tut-btn-next';
+    }
+    function nextPhase(afterMs, next) {
+      phaseTimer = setTimeout(function() {
+        phase = next;
+        runPhase();
+      }, afterMs);
+    }
+    function runPhase() {
+      clearTutorialTimers();
+      var area = g('tutImgArea');
+      var cap = g('tutCaption');
+      var nextBtn = g('tutNextBtn');
+      if (!area || !cap || !nextBtn) return;
+      if (area.offsetParent === null) {
+        phaseTimer = setTimeout(runPhase, 120);
+        return;
+      }
+      var trial = tutorialTrials[idx];
+      if (phase === 0) {
+        area.style.opacity = '0';
+        phaseTimer = setTimeout(function() {
+          loadTrial(trial);
+          area.style.opacity = '1';
+          cap.innerHTML = captions[0](trial.classLabel);
+          nextPhase(longCaptionMs, 1);
+        }, 280);
+      } else if (phase === 1) {
+        cap.innerHTML = captions[1](trial.classLabel);
+        triggerHoldAttention();
+        focusTimers.push(setTimeout(function() { tutorialShowFocused(); }, 900));
+        focusTimers.push(setTimeout(function() { tutorialShowNormal(); }, 3500));
+        nextPhase(longCaptionMs, 2);
+      } else if (phase === 2) {
+        cap.innerHTML = captions[2](trial.classLabel);
+        phaseTimer = setTimeout(function() {
+          ss(g('tutFillG'), g('tutThumbG'), trial.ratings.gloss);
+        }, 700);
+        nextPhase(ratingCaptionMs, 3);
+      } else if (phase === 3) {
+        cap.innerHTML = captions[3](trial.classLabel);
+        phaseTimer = setTimeout(function() {
+          ss(g('tutFillT'), g('tutThumbT'), trial.ratings.trans);
+        }, 700);
+        nextPhase(ratingCaptionMs, 4);
+      } else if (phase === 4) {
+        cap.innerHTML = captions[4](trial.classLabel);
+        phaseTimer = setTimeout(function() {
+          ss(g('tutFillX'), g('tutThumbX'), trial.ratings.texture);
+        }, 700);
+        nextPhase(ratingCaptionMs, 5);
+      } else if (phase === 5) {
+        cap.innerHTML = captions[5](trial.classLabel);
+        nextBtn.className = 'tut-btn-next pulse';
+        phaseTimer = setTimeout(function() {
+          nextBtn.className = 'tut-btn-next';
+          area.style.opacity = '0';
+          tutorialShowNormal();
+          phase = 0;
+          idx = (idx + 1) % tutorialTrials.length;
+          setTimeout(runPhase, 900);
+        }, longCaptionMs);
+      }
+    }
+
+    bindTutorialHold();
+    preloadImages();
+    runPhase();
+  }
+
+})();
+</script>
+
+<div class="copyright-footer">
+  &copy; 2025 Soroush Shahbaznejad &mdash; Material Perception Experiment. All rights reserved.
+</div>
+
+</body>
+</html>
